@@ -1,0 +1,40 @@
+import discord
+from discord.ext import commands
+
+# Set up the bot's command prefix
+bot = commands.Bot(command_prefix='!')
+
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user.name}')
+
+@bot.command(name='invite', help='Invite a user to the server')
+async def invite(ctx, user: discord.User):
+    # Check if the user is already in the server
+    if user in ctx.guild.members:
+        await ctx.send(f'{user.name} is already in the server!')
+    else:
+        # Invite the user to the server
+        invite = await ctx.channel.create_invite(max_uses=1)
+        await user.send(f'You have been invited to join {ctx.guild.name}! Here is the invite link: {invite.url}')
+        await ctx.send(f'{user.name} has been invited to the server!')
+
+@bot.command(name='listinvites', help='List all invites in the server')
+async def list_invites(ctx):
+    invites = await ctx.guild.invites()
+    if invites:
+        for invite in invites:
+            await ctx.send(f'Invite URL: {invite.url}, Uses: {invite.uses}')
+    else:
+        await ctx.send('There are no active invites in this server.')
+
+@bot.command(name='clearinvites', help='Clear all invites in the server')
+@commands.has_permissions(administrator=True)
+async def clear_invites(ctx):
+    invites = await ctx.guild.invites()
+    for invite in invites:
+        await invite.delete()
+    await ctx.send('All invites have been cleared.')
+
+# Run the bot with your Discord bot token
+bot.run('YOUR_DISCORD_BOT_TOKEN')
